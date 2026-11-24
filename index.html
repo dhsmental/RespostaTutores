@@ -179,6 +179,29 @@
         let trilhaAtivaNome = null;
         let modoComparacaoAtivo = false;
 
+        function formatarValorResposta(resposta, pergunta = "") {
+            const textoOriginal = String(resposta ?? "").trim();
+            if (!textoOriginal) return "";
+
+            const ehPerguntaPorcentagem = /porcentagem|percentual|%/i.test(pergunta);
+            if (!ehPerguntaPorcentagem) return textoOriginal;
+
+            if (textoOriginal.endsWith("%")) {
+                return textoOriginal.replace(/\s+/g, "");
+            }
+
+            const normalizado = textoOriginal.replace(",", ".");
+            const numero = Number(normalizado);
+
+            if (!Number.isNaN(numero)) {
+                const percentual = numero >= 0 && numero <= 1 ? numero * 100 : numero;
+                const arredondado = Math.round(percentual * 100) / 100;
+                return `${arredondado}%`;
+            }
+
+            return textoOriginal;
+        }
+
         function normalizarPerguntaComparacao(pergunta) {
             return (pergunta || "")
                 .toLowerCase()
@@ -198,7 +221,6 @@
         }
 
         function montarComparacoesTutor(tutor) {
-            // Mapa chaveNormalizada -> { tituloExibicao, isPercentual, entradas: [{ trilha, resposta }] }
             const grupos = new Map();
 
             ORDEM_TRILHAS.forEach(nomeTrilha => {
@@ -213,19 +235,18 @@
                         grupos.set(chave, {
                             chave,
                             titulo: formatarTituloComparacao(item.pergunta),
-                            isPercentual: item.pergunta.toLowerCase().includes("porcentagem"),
+                            isPercentual: /porcentagem|percentual|%/i.test(item.pergunta),
                             entradas: []
                         });
                     }
 
                     grupos.get(chave).entradas.push({
                         trilha: nomeTrilha,
-                        resposta: item.resposta
+                        resposta: formatarValorResposta(item.resposta, item.pergunta)
                     });
                 });
             });
 
-            // Mantém apenas perguntas que aparecem em 2 ou mais trilhas
             return Array.from(grupos.values()).filter(g => g.entradas.length >= 2);
         }
 
@@ -391,21 +412,25 @@
                 '----------------------------------------'
             ].filter(Boolean).join('\n');
 
-            const corpoCopia = itens.map((q, idx) => `${idx + 1}. ${q.pergunta}\nResposta: ${q.resposta}`).join('\n\n');
+            const corpoCopia = itens.map((q, idx) => {
+                const valorFormatado = formatarValorResposta(q.resposta, q.pergunta);
+                return `${idx + 1}. ${q.pergunta}\nResposta: ${valorFormatado}`;
+            }).join('\n\n');
             textoAtualSelecionado = `${cabecalhoCopia}\n\n${corpoCopia}`;
 
             document.getElementById('btnCopiar').classList.remove('hidden');
 
             const blocosHtml = itens.map((q, idx) => {
-                const isPercentual = q.pergunta.toLowerCase().includes('porcentagem');
+                const isPercentual = /porcentagem|percentual|%/i.test(q.pergunta);
+                const valorFormatado = formatarValorResposta(q.resposta, q.pergunta);
                 return `
                     <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-lg">
                         <div class="text-[11px] font-semibold text-slate-600 leading-snug mb-1.5">
                             <span class="text-indigo-700 font-bold mr-1">${idx + 1}.</span>${escapeHtml(q.pergunta)}
                         </div>
                         ${isPercentual
-                            ? `<span class="inline-block px-2.5 py-0.5 bg-indigo-100 text-indigo-800 font-bold rounded text-xs">${escapeHtml(q.resposta)}</span>`
-                            : `<div class="text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-white p-2.5 rounded border border-slate-200/70">${escapeHtml(q.resposta)}</div>`
+                            ? `<span class="inline-block px-2.5 py-0.5 bg-indigo-100 text-indigo-800 font-bold rounded text-xs">${escapeHtml(valorFormatado)}</span>`
+                            : `<div class="text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-white p-2.5 rounded border border-slate-200/70">${escapeHtml(valorFormatado)}</div>`
                         }
                     </div>
                 `;
@@ -458,7 +483,6 @@
                 return;
             }
 
-            // Monta texto para o botão Copiar
             const linhasCopia = [
                 `COMPARAÇÃO DE RESPOSTAS — ${item.nome}`,
                 `GRUPO: ${item.grupo}`,
