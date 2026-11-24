@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dados Cadastrais de Novos Cursistas - SISFOR</title>
+  
+  <!-- Importação da Biblioteca PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+ <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        padding: 20px;
+    }
+
+    .container-principal {
+    max-width: 1000px; 
+    width: 100%;
+    margin: 0 auto;   
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    overflow: hidden; 
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+    .banner {
+        margin: 0;
+        padding: 0;
+        line-height: 0; 
+    }
+
+    .banner img {
+        width: 100%;      
+        height: auto;     
+        display: block;
+        border-top-left-radius: 8px;  
+        border-top-right-radius: 8px;
+    }
+
+    .formulario {
+        width: 100%;      
+        padding: 30px;
+        box-sizing: border-box; 
+    }
+
+    h1 {
+    font-size: clamp(24px, 3vw, 42px);
+    margin-bottom: 20px;
+    white-space: nowrap;
+}
+
+    h2 {
+        font-size: 20px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #1a73e8;
+        padding-bottom: 5px;
+    }
+
+    p.description {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 40px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .help-text {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    input[readonly], select:disabled, input:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+    .radio-group label {
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
+
+    .info-obrigatorio {
+        margin-right: auto;
+        font-size: 13px;
+        color: #555;
+        display: flex;
+        align-items: center;
+        line-height: 40px;
+    }
+
+    .asterisco {
+        color: #d93025;
+        font-weight: bold;
+        margin-right: 4px;
+    }
+
+    button {
+        min-width: 100px;
+        height: 40px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .btn-submit {
+        background-color: #1a73e8;
+        color: white;
+    }
+
+    .btn-reset {
+        background-color: #ffffff;
+        color: #3c4043;
+        border: 1px solid #dadce0;
+    }
+
+    #custom-alert-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #custom-alert-box {
+        background: #ffffff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        animation: scaleIn 0.2s ease-in-out;
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .alert-logo {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        margin-bottom: 15px;
+        border-radius: 50%;
+    }
+
+    #custom-alert-box h3 {
+        margin-top: 0;
+        color: #1a73e8;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    #custom-alert-box p {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 25px;
+    }
+
+    #custom-alert-box button {
+        background-color: #1a73e8;
+        color: white;
+        font-size: 16px;
+        padding: 10px 30px;
+        border-radius: 6px;
+        width: 100%;
+    }
+
+    #custom-alert-box button:hover {
+        background-color: #1557b0;
+    }
+</style>
+</head>
+
+<body>
+<div class="container-principal">
+	<div class="banner">
+    	    <img src="https://raw.githubusercontent.com/dhsmental/DadosCursistas/main/banner.jpeg" alt="Banner do Curso">
+	</div>
+
+<div class="form-container">
+
+  <h1>Dados Cadastrais de Novos Cursistas - SISFOR</h1>
+  <p class="description">Formulário para coleta de dados de novos alunos inscritos no curso de Direitos Humanos e Saúde Mental - UNIPAMPA</p>
+
+  <form id="formCursistas">
+    
+    <!-- 1. DADOS PESSOAIS -->
+    <h2>Dados Pessoais</h2>
+
+    <div class="form-group">
+      <label for="email">E-mail: <span class="required">*</span></label>
+      <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+    </div>
+
+    <div class="form-group">
+      <label for="nome">Nome Completo: <span class="required">*</span></label>
+      <input type="text" id="nome" name="nome" placeholder="Sua resposta" required>
+    </div>
+
+    <div class="form-group">
+      <label for="confirm_email">Confirme seu endereço de e-mail: <span class="required">*</span></label>
+      <div class="help-text">Digite o e-mail com atenção, pois ele será utilizado para envio das comunicações do curso.</div>
+      <input type="email" id="confirm_email" name="confirm_email" placeholder="Sua resposta" required>
+    </div>
+
+    <div class="form-group">
+      <label for="data_nascimento">Data de Nascimento: <span class="required">*</span></label>
+      <input type="text" id="data_nascimento" name="data_nascimento" placeholder="DD/MM/AAAA" maxlength="10" required>
+    </div>
+
+    <div class="form-group radio-group">
+      <label>Gênero: <span class="required">*</span></label>
+      <label><input type="radio" name="genero" value="Masculino" required> Masculino</label>
+      <label><input type="radio" name="genero" value="Feminino"> Feminino</label>
+    </div>
+
+    <div class="form-group">
+      <label for="cpf">CPF: (apenas números) <span class="required">*</span></label>
+      <input type="tel" id="cpf" name="cpf" pattern="\d*" maxlength="11" placeholder="Sua resposta" required>
+    </div>
+
+    <div class="form-group">
+      <label for="telefone">Telefone com DDD <span class="required">*</span></label>
+      <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" maxlength="15" required>
+    </div>
+
+    <div class="form-group">
+      <label for="escolaridade">Escolaridade: <span class="required">*</span></label>
+      <select id="escolaridade" name="escolaridade" required>
+        <option value="" disabled selected>Selecione uma opção</option>
+        <option value="1">1 - Médio Incompleto</option>
+        <option value="2">2 - Médio Completo</option>
+        <option value="3">3 - Superior Incompleto</option>
+        <option value="5">5 - Pedagogia</option>
+        <option value="6">6 - Licenciatura</option>
+        <option value="7">7 - Superior Completo (outro)</option>
+        <option value="8">8 - Especialização</option>
+        <option value="9">9 - Mestrado</option>
+        <option value="10">10 - Doutorado</option>
+        <option value="11">11 - Fundamental Incompleto</option>
+        <option value="12">12 - Fundamental Completo</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="raca">Raça/Etnia: <span class="required">*</span></label>
+      <select id="raca" name="raca" required>
+        <option value="" disabled selected>Selecione uma opção</option>
+        <option value="1">1 - Branca</option>
+        <option value="2">2 - Preta</option>
+        <option value="3">3 - Parda</option>
+        <option value="4">4 - Amarela</option>
+        <option value="5">5 - Indígena</option>
+        <option value="nao_declarada">Não declarada</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="deficiencia">Deficiência: <span class="required">*</span></label>
+      <select id="deficiencia" name="deficiencia" required>
+        <option value="" disabled selected>Selecione uma opção</option>
+        <option value="1">1 - Cegueira</option>
+        <option value="2">2 - Surdocegueira</option>
+        <option value="3">3 - Baixa visão</option>
+        <option value="4">4 - Deficiência física</option>
+        <option value="5">5 - Surdez</option>
+        <option value="6">6 - Deficiência intelectual</option>
+        <option value="7">7 - Deficiência auditiva</option>
+        <option value="8">8 - Deficiência múltipla</option>
+        <option value="9">9 - Não declarado</option>
+        <option value="10">10 - Não possui deficiência</option>
+      </select>
+    </div>
+
+    <!-- 2. INFORMAÇÕES PROFISSIONAIS -->
+    <h2>Informações Profissionais</h2>
+
+    <div class="form-group">
+      <label for="funcao">Função que exerce: <span class="required">*</span></label>
+      <select id="funcao" name="funcao" required>
+        <option value="" disabled selected>Selecione uma opção</option>
+        <option value="1">1 - Auxiliar de Educação Infantil</option>
+        <option value="2">2 - Conselheiro Escolar</option>
+        <option value="3">3 - Conselheiro Municipal de Educação</option>
+        <option value="4">4 - Coordenador Pedagógico</option>
+        <option value="5">5 - Diretor</option>
+        <option value="6">6 - Dirigente de Educação</option>
+        <option value="7">7 - Docente</option>
+        <option value="8">8 - Estudante</option>
+        <option value="9">9 - Formador de NTE</option>
+        <option value="10">10 - Intérprete de Libras</option>
+        <option value="11">11 - Monitor de Atividade Complementar</option>
+        <option value="12">12 - Profissional de Assistência</option>
+        <option value="13">13 - Profissional de Saúde</option>
+        <option value="14">14 - Técnico da Secretaria de Educação</option>
+        <option value="15">15 - Técnico de NTE</option>
+        <option value="16">16 - Vice-Diretor</option>
+        <option value="99">99 - Outros</option>
+      </select>
+    </div>
+
+    <div class="form-group radio-group">
+      <label>Rede de Ensino onde Atua: <span class="required">*</span></label>
+      <label><input type="radio" name="rede_ensino" value="Municipal" required> Municipal</label>
+      <label><input type="radio" name="rede_ensino" value="Estadual"> Estadual</label>
+      <label><input type="radio" name="rede_ensino" value="Federal"> Federal</label>
+      <label><input type="radio" name="rede_ensino" value="Não se aplica"> Não se aplica</label>
+    </div>
+
+    <div class="form-group radio-group">
+      <label>Vínculo com a Rede de Ensino: <span class="required">*</span></label>
+      <label><input type="radio" name="vinculo" value="1" required> 1 - Concursado/efetivo</label>
+      <label><input type="radio" name="vinculo" value="2"> 2 - Temporário</label>
+      <label><input type="radio" name="vinculo" value="3"> 3 - Terceirizado</label>
+      <label><input type="radio" name="vinculo" value="4"> 4 - CLT</label>
+      <label><input type="radio" name="vinculo" value="99"> 99 - Estudante</label>
+      <label><input type="radio" name="vinculo" value="100"> 100 - Outros</label>
+    </div>
+
+    <h2>Informações do Cursista</h2>
+
+    <div class="form-group">
+      <label>Perfil do Cursista: <span class="required">*</span></label>
+      <div style="display: flex; gap: 20px; padding: 10px 0;">
+        <label style="font-weight: normal; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <input type="radio" name="tipo_cursista" value="Estudante" required style="width: auto; margin: 0;">  Outros
+        </label>
+        <label style="font-weight: normal; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <input type="radio" name="tipo_cursista" value="Profissional da Educação" style="width: auto; margin: 0;"> Profissional da Educação da Rede Básica de Ensino (atuam em escola da Rede)
+        </label>
+      </div>
+    </div>
+
+    <!-- 3. LOCALIZAÇÃO E ESCOLA -->
+    <div class="form-group">
+      <label for="uf">Estado onde estuda / trabalha: <span class="required">*</span></label>
+      <select id="uf" name="uf" required>
+        <option value="" disabled selected>Selecione um estado</option>
+        <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+        <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+        <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+        <option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option>
+        <option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option>
+        <option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option>
+        <option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option>
+        <option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option>
+        <option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="municipio">Município em que estuda / trabalha: <span class="required">*</span></label>
+      <select id="municipio" name="municipio" disabled required>
+        <option value="">Selecione primeiro o estado</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="escola">Informe o nome da escola onde atua: </label>
+      <select id="escola" name="escola" disabled>
+        <option value="">Selecione primeiro o profissional da educação e o município</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="inep">Código INEP da Escola: </label>
+      <input type="text" id="inep" name="inep" readonly disabled placeholder="Preenchido automaticamente">
+    </div>
+
+    <input type="hidden" id="codigo_municipio" name="codigo_municipio">
+
+    <div class="buttons">
+      <span class="info-obrigatorio">
+          <span class="asterisco">*</span> Campos obrigatórios
+      </span>
+      <button type="reset" class="btn-reset">Limpar formulário</button>
+      <button type="submit" class="btn-submit">Enviar</button>
+    </div>
+
+  </form>
+</div>
+</div>
+
+<!-- Alerta Personalizado -->
+<div id="custom-alert-overlay">
+    <div id="custom-alert-box">
+        <img src="https://raw.githubusercontent.com/dhsmental/DadosCursistas/main/logo.jpeg" alt="Logo" class="alert-logo">
+        <h3 id="custom-alert-title">Sucesso!</h3>
+        <p id="custom-alert-message">Cadastro realizado com sucesso!</p>
+        <button onclick="fecharAlertaCustomizado()">OK</button>
+    </div>
+</div>
+
+<!-- JAVASCRIPT OTIMIZADO -->
+<script>
+let EscolasMuniCSV = [];
+
+const selectUF = document.getElementById("uf");
+const selectMunicipio = document.getElementById("municipio");
+const selectEscola = document.getElementById("escola");
+const campoInep = document.getElementById("inep");
+const form = document.getElementById("formCursistas");
+const radiosPerfil = document.querySelectorAll('input[name="tipo_cursista"]');
+
+const CSV_POR_UF = {
+  "AC": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=919089555&single=true&output=csv",
+  "AL": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1492906837&single=true&output=csv",
+  "AM": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=2065729688&single=true&output=csv",
+  "AP": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=413582905&single=true&output=csv",
+  "BA": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=135079623&single=true&output=csv",
+  "CE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1628342585&single=true&output=csv",
+  "DF": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=583859084&single=true&output=csv",
+  "ES": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=86931561&single=true&output=csv",
+  "GO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=481751009&single=true&output=csv",
+  "MA": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1611150924&single=true&output=csv",
+  "MG": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=671670202&single=true&output=csv",
+  "MS": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1845070653&single=true&output=csv",
+  "MT": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=777560551&single=true&output=csv",
+  "PA": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1379298506&single=true&output=csv",
+  "PB": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=950212066&single=true&output=csv",
+  "PE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1848741003&single=true&output=csv",
+  "PI": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=260195494&single=true&output=csv",
+  "PR": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1944047795&single=true&output=csv",
+  "RJ": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=408078616&single=true&output=csv",
+  "RN": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=2061973743&single=true&output=csv",
+  "RO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=589419166&single=true&output=csv",
+  "RR": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=437244425&single=true&output=csv",
+  "RS": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1480601952&single=true&output=csv",
+  "SC": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=433420489&single=true&output=csv",
+  "SE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=1215037813&single=true&output=csv",
+  "SP": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=618876789&single=true&output=csv",
+  "TO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnTs95n0C-DHcZGDos7332ndYM4_rx7ZqF_I8l6eRRoeI_uktPGq5FN-e-ByM6xA/pub?gid=248095253&single=true&output=csv"
+};
+
+function mostrarAlertaCustomizado(mensagem, titulo = "Sucesso!") {
+    document.getElementById("custom-alert-title").textContent = titulo;
+    document.getElementById("custom-alert-message").textContent = mensagem;
+    document.getElementById("custom-alert-overlay").style.display = "flex";
+}
+
+function fecharAlertaCustomizado() {
+    document.getElementById("custom-alert-overlay").style.display = "none";
+}
+
+// Função de validação real de CPF
+function validarCPF(cpf) {
+    cpf = String(cpf).replace(/[^\d]+/g, '');
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    let soma = 0, resto;
+    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    return resto === parseInt(cpf.substring(10, 11));
+}
+
+// Função de validação de formato de E-mail
+function validarEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+// MÁSCARA AUTOMÁTICA E BLOQUEIO DE 4 DÍGITOS NO ANO PARA DATA DE NASCIMENTO
+document.getElementById("data_nascimento").addEventListener("input", function (e) {
+    let valor = e.target.value.replace(/\D/g, "");
+    if (valor.length > 8) {
+        valor = valor.substring(0, 8);
+    }
+    if (valor.length > 4) {
+        valor = valor.substring(0, 2) + "/" + valor.substring(2, 4) + "/" + valor.substring(4, 8);
+    } else if (valor.length > 2) {
+        valor = valor.substring(0, 2) + "/" + valor.substring(2, 4);
+    }
+    e.target.value = valor;
+});
+
+// MÁSCARA AUTOMÁTICA PARA TELEFONE ((00) 00000-0000 ou (00) 0000-0000)
+document.getElementById("telefone").addEventListener("input", function (e) {
+    let valor = e.target.value.replace(/\D/g, "");
+    if (valor.length > 11) {
+        valor = valor.substring(0, 11);
+    }
+    if (valor.length > 10) {
+        valor = "(" + valor.substring(0, 2) + ") " + valor.substring(2, 7) + "-" + valor.substring(7, 11);
+    } else if (valor.length > 6) {
+        valor = "(" + valor.substring(0, 2) + ") " + valor.substring(2, 6) + "-" + valor.substring(6, 10);
+    } else if (valor.length > 2) {
+        valor = "(" + valor.substring(0, 2) + ") " + valor.substring(2);
+    } else if (valor.length > 0) {
+        valor = "(" + valor;
+    }
+    e.target.value = valor;
+});
+
+// VALIDAÇÃO IMEDIATA AO SAIR DO CAMPO DE CPF (BLUR)
+document.getElementById("cpf").addEventListener("blur", function() {
+    let cpf = this.value.replace(/[^\d]+/g, '');
+    if (cpf.length > 0) {
+        if (!validarCPF(cpf)) {
+            mostrarAlertaCustomizado("O CPF informado é inválido. Por favor, verifique.", "Atenção");
+            this.focus();
+        }
+    }
+});
+
+// VALIDAÇÃO IMEDIATA AO SAIR DO CAMPO DE TELEFONE (BLUR)
+document.getElementById("telefone").addEventListener("blur", function() {
+    let tel = this.value.replace(/\D/g, '');
+    if (tel.length > 0) {
+        if (tel.length !== 10 && tel.length !== 11) {
+            mostrarAlertaCustomizado("O telefone informado está incompleto. Digite todos os números com o DDD no formato (00) 00000-0000.", "Atenção");
+            this.focus();
+        }
+    }
+});
+
+// VALIDAÇÃO IMEDIATA AO SAIR DO CAMPO DE E-MAIL (BLUR)
+document.getElementById("email").addEventListener("blur", function() {
+    let email = this.value.trim();
+    if (email.length > 0 && !validarEmail(email)) {
+        mostrarAlertaCustomizado("O formato do e-mail principal parece inválido. Verifique se digitou corretamente.", "Atenção");
+        this.focus();
+    }
+});
+
+// VALIDAÇÃO IMEDIATA AO SAIR DO CAMPO DE CONFIRMAÇÃO DE E-MAIL (BLUR)
+document.getElementById("confirm_email").addEventListener("blur", function() {
+    let email = document.getElementById("email").value.trim();
+    let confirmEmail = this.value.trim();
+    
+    if (confirmEmail.length > 0) {
+        if (!validarEmail(confirmEmail)) {
+            mostrarAlertaCustomizado("O formato do e-mail de confirmação parece inválido.", "Atenção");
+            this.focus();
+            return;
+        }
+        if (email !== confirmEmail) {
+            mostrarAlertaCustomizado("Os e-mails informados não conferem. Por favor, verifique.", "Atenção");
+            this.focus();
+        }
+    }
+});
+
+// VALIDAÇÃO IMEDIATA AO SAIR DO CAMPO DE DATA DE NASCIMENTO (BLUR)
+document.getElementById("data_nascimento").addEventListener("blur", function() {
+    let dataStr = this.value;
+    
+    if (dataStr.length > 0 && dataStr.length < 10) {
+        mostrarAlertaCustomizado("Por favor, digite a data completa no formato DD/MM/AAAA.", "Atenção");
+        this.focus();
+        return;
+    }
+
+    if (dataStr.length === 10) {
+        let partes = dataStr.split("/");
+        let dia = parseInt(partes[0], 10);
+        let mes = parseInt(partes[1], 10) - 1;
+        let ano = parseInt(partes[2], 10);
+
+        if (partes[2].length !== 4) {
+            mostrarAlertaCustomizado("O ano deve conter 4 dígitos (ex: 2000).", "Atenção");
+            this.focus();
+            return;
+        }
+
+        let dataNasc = new Date(ano, mes, dia);
+        let hoje = new Date();
+
+        if (dataNasc.getDate() !== dia || dataNasc.getMonth() !== mes || dataNasc.getFullYear() !== ano) {
+            mostrarAlertaCustomizado("A data de nascimento informada é inválida (ex: dia ou mês inexistente).", "Atenção");
+            this.focus();
+            return;
+        }
+
+        if (dataNasc > hoje) {
+            mostrarAlertaCustomizado("A data de nascimento não pode ser no futuro.", "Atenção");
+            this.focus();
+            return;
+        }
+
+        let anoMinimo = hoje.getFullYear() - 110;
+        if (ano < anoMinimo) {
+            mostrarAlertaCustomizado("O ano de nascimento indica uma idade superior a 110 anos.", "Atenção");
+            this.focus();
+        }
+    }
+});
+
+// 1. ALTERAÇÃO DE ESTADO (UF)
+selectUF.addEventListener("change", async function () {
+    const uf = this.value;
+    if (!uf) return;
+
+    selectMunicipio.innerHTML = '<option value="">Carregando municípios...</option>';
+    selectMunicipio.disabled = true;
+    
+    const perfilSelecionado = document.querySelector('input[name="tipo_cursista"]:checked')?.value;
+    
+    if (perfilSelecionado === "Profissional da Educação") {
+        selectEscola.innerHTML = '<option value="">Selecione primeiro o município</option>';
+        selectEscola.disabled = true;
+        campoInep.value = "";
+        campoInep.readOnly = true;
+    }
+
+    const csvPromise = new Promise((resolve) => {
+        const urlEstado = CSV_POR_UF[uf];
+        if (!urlEstado) {
+            resolve([]);
+            return;
+        }
+        Papa.parse(urlEstado, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (res) => resolve(res.data),
+            error: (err) => { console.error("Erro CSV:", err); resolve([]); }
+        });
+    });
+
+    const ibgePromise = fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`)
+        .then(res => { if (!res.ok) throw new Error("Erro IBGE"); return res.json(); })
+        .catch(err => { console.error("Erro IBGE:", err); return []; });
+
+    const [dadosCsv, municipios] = await Promise.all([csvPromise, ibgePromise]);
+    EscolasMuniCSV = dadosCsv;
+
+    selectMunicipio.innerHTML = '<option value="">Selecione um município</option>';
+    
+    if (municipios && municipios.length > 0) {
+        municipios.forEach(m => {
+            const option = document.createElement("option");
+            option.value = m.nome;
+            option.dataset.codigoIbge = m.id;
+            option.textContent = m.nome;
+            selectMunicipio.appendChild(option);
+        });
+        selectMunicipio.disabled = false;
+    } else {
+        selectMunicipio.innerHTML = '<option value="">Erro ao carregar municípios.</option>';
+    }
+});
+
+// 2. ALTERAÇÃO DE MUNICÍPIO
+selectMunicipio.addEventListener("change", function() {
+    const perfilSelecionado = document.querySelector('input[name="tipo_cursista"]:checked')?.value;
+
+    const optionSelecionada = selectMunicipio.options[selectMunicipio.selectedIndex];
+    const codigoIbge = optionSelecionada?.dataset?.codigoIbge || ""; 
+    
+    const inputCodMun = document.getElementById("codigo_municipio");
+    if (inputCodMun) inputCodMun.value = codigoIbge;    
+
+    if (perfilSelecionado === "Estudante") return;
+
+    selectEscola.innerHTML = '<option value="">Selecione uma escola</option>';
+    campoInep.value = "";
+    campoInep.readOnly = true;
+    
+    const codigoIbge6 = codigoIbge.substring(0, 6);
+    const municipioSelecionado = selectMunicipio.value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toUpperCase();
+
+    const escolasFiltradas = EscolasMuniCSV.filter(item => {
+        const nomeEscola = item["escola_onde_atua"] || item["Escola"] || "";
+        const temEscola = !!nomeEscola.trim();
+        
+        const municipioCSV = (item["Município"] || item["Municipio"] || item["municipio"] || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toUpperCase();
+        const codMunCSV = String(item["codigo_municipio"] || item["Código Municipio"] || "").trim();
+
+        const bateuMunicipio = (municipioCSV === municipioSelecionado) || (codMunCSV === codigoIbge) || (codMunCSV === codigoIbge6);
+
+        return temEscola && bateuMunicipio;
+    });
+
+    if (escolasFiltradas.length === 0) {
+        selectEscola.innerHTML = '<option value="">Nenhuma escola encontrada</option>';
+        liberarDigitacaoManual();
+        return;
+    }
+
+    escolasFiltradas.sort((a, b) => {
+        const nomeA = a["escola_onde_atua"] || a["Escola"] || "";
+        const nomeB = b["escola_onde_atua"] || b["Escola"] || "";
+        return nomeA.localeCompare(nomeB, "pt-BR");
+    });
+
+    escolasFiltradas.forEach(item => {
+        const option = document.createElement("option");
+        const nomeEscola = item["escola_onde_atua"] || item["Escola"] || "";
+        
+        let codigoInep = "";
+        for (let chave in item) {
+            if (chave.toLowerCase().includes("inep")) {
+                codigoInep = item[chave];
+                break;
+            }
+        }
+
+        option.textContent = nomeEscola;
+        option.value = nomeEscola;
+        option.dataset.inep = codigoInep ? String(codigoInep).trim() : "";
+        selectEscola.appendChild(option);
+    });
+    
+    selectEscola.disabled = false;
+});
+
+// 3. SELEÇÃO DA ESCOLA
+selectEscola.addEventListener("change", function() {
+    const opcaoSelecionada = this.options[this.selectedIndex];
+    const inepValor = opcaoSelecionada.dataset.inep || "";
+    
+    campoInep.value = inepValor;
+    campoInep.readOnly = true;
+});
+
+function liberarDigitacaoManual() {
+    campoInep.value = "";
+    campoInep.readOnly = false;
+    campoInep.placeholder = "Digite o código INEP manualmente";
+    campoInep.focus();
+}
+
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    // Validação de E-mails iguais e formato
+    const email = document.getElementById("email").value.trim();
+    const confirmEmail = document.getElementById("confirm_email").value.trim();
+
+    if (!validarEmail(email)) {
+        mostrarAlertaCustomizado("O e-mail principal informado é inválido.", "Atenção");
+        document.getElementById("email").focus();
+        return;
+    }
+
+    if (email !== confirmEmail) {
+        mostrarAlertaCustomizado("Os endereços de e-mail informados não coincidem. Por favor, verifique.", "Atenção");
+        document.getElementById("confirm_email").focus();
+        return;
+    }
+
+    // Validação final de Telefone
+    const telVal = document.getElementById("telefone").value.replace(/\D/g, '');
+    if (telVal.length !== 10 && telVal.length !== 11) {
+        mostrarAlertaCustomizado("O telefone informado está incompleto. Por favor, verifique.", "Atenção");
+        document.getElementById("telefone").focus();
+        return;
+    }
+
+    // Validação final de Data de Nascimento
+    const dataStr = document.getElementById("data_nascimento").value;
+    const partes = dataStr.split("/");
+    
+    if (partes.length !== 3 || partes[2].length !== 4) {
+        mostrarAlertaCustomizado("Por favor, digite a data de nascimento completa no formato DD/MM/AAAA.", "Atenção");
+        document.getElementById("data_nascimento").focus();
+        return;
+    }
+
+    const dia = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1;
+    const ano = parseInt(partes[2], 10);
+
+    const dataNasc = new Date(ano, mes, dia);
+    const hoje = new Date();
+
+    if (dataNasc.getDate() !== dia || dataNasc.getMonth() !== mes || dataNasc.getFullYear() !== ano) {
+        mostrarAlertaCustomizado("A data de nascimento informada é inválida.", "Atenção");
+        document.getElementById("data_nascimento").focus();
+        return;
+    }
+
+    if (dataNasc > hoje) {
+        mostrarAlertaCustomizado("A data de nascimento não pode ser no futuro.", "Atenção");
+        document.getElementById("data_nascimento").focus();
+        return;
+    }
+
+    let anoMinimo = hoje.getFullYear() - 110;
+    if (ano < anoMinimo) {
+        mostrarAlertaCustomizado("O ano de nascimento indica uma idade superior a 110 anos. Verifique o valor.", "Atenção");
+        document.getElementById("data_nascimento").focus();
+        return;
+    }
+
+    // Validação final de CPF
+    const cpfInputVal = document.getElementById("cpf").value;
+    if (!validarCPF(cpfInputVal)) {
+        mostrarAlertaCustomizado("O CPF informado é inválido.", "Atenção");
+        document.getElementById("cpf").focus();
+        return;
+    }
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const urlGoogleScript = "https://script.google.com/macros/s/AKfycbzQAJNazR64ubFtXPCzvMA2lCoIBdltJH6imLE-iW2_fIT0DxA6z3JVzlecPit1Cn0Y/exec";
+    const btnSubmit = document.querySelector(".btn-submit");
+    const textoOriginal = btnSubmit ? btnSubmit.textContent : "Enviar";
+    
+    if (btnSubmit) {
+        btnSubmit.textContent = "Enviando...";
+        btnSubmit.disabled = true;
+    }
+
+    const formData = new FormData(form);
+
+    let cpfInput = form.querySelector("#cpf");
+    if (cpfInput) {
+        let cpfValor = cpfInput.value.replace(/\D/g, "");
+        if (cpfValor.length > 0) formData.set("cpf", "'" + cpfValor.padStart(11, "0"));
+    }
+    
+    let inepInput = form.querySelector("#inep");
+    if (inepInput) {
+        inepInput.disabled = false;
+        let inepValor = inepInput.value.replace(/\D/g, "");
+        if (inepValor.length > 0) {
+            formData.set("inep", "'" + inepValor);
+        } else {
+            formData.set("inep", "");
+        }
+    }
+
+    fetch(urlGoogleScript, { method: "POST", body: formData, mode: "no-cors" })
+    .then(() => {
+        mostrarAlertaCustomizado("Cadastro realizado com sucesso!", "Sucesso!");
+        form.reset();
+        atualizarEstadoCamposEscola();
+    })
+    .catch(error => {
+        console.error("Erro:", error);
+        mostrarAlertaCustomizado("Erro na conexão ao enviar os dados.", "Erro");
+    })
+    .finally(() => {
+        if (btnSubmit) {
+            btnSubmit.textContent = textoOriginal;
+            btnSubmit.disabled = false;
+        }
+    });
+});
+
+function atualizarEstadoCamposEscola() {
+    const perfilSelecionado = document.querySelector('input[name="tipo_cursista"]:checked');
+    const tipo = perfilSelecionado ? perfilSelecionado.value : "";
+    
+    if (!tipo) {
+        selectUF.value = "";
+        selectUF.disabled = true;
+        selectMunicipio.innerHTML = '<option value="">Selecione primeiro o perfil</option>';
+        selectMunicipio.disabled = true;
+        selectEscola.innerHTML = '<option value="">Selecione primeiro o perfil</option>';
+        selectEscola.disabled = true;
+        campoInep.value = "";
+        campoInep.disabled = true;
+        return;
+    }
+
+    selectUF.disabled = false;
+    selectUF.setAttribute("required", "required");
+
+    if (selectUF.value) {
+        selectMunicipio.disabled = false;
+    } else {
+        selectMunicipio.disabled = true;
+    }
+
+    if (tipo === "Profissional da Educação") {
+        selectEscola.setAttribute("required", "required");
+        campoInep.setAttribute("required", "required");
+        campoInep.disabled = false;
+
+        if (selectMunicipio.value) {
+            selectEscola.disabled = false;
+        } else {
+            selectEscola.disabled = true;
+            selectEscola.innerHTML = '<option value="">Selecione primeiro o município</option>';
+        }
+    } else {
+        selectEscola.innerHTML = '<option value="">Não obrigatório para estudantes</option>';
+        selectEscola.value = "";
+        selectEscola.disabled = true;
+        selectEscola.removeAttribute("required");
+
+        campoInep.value = "";
+        campoInep.readOnly = true;
+        campoInep.disabled = true;
+        campoInep.removeAttribute("required");
+        campoInep.placeholder = "Preenchido automaticamente";
+    }
+}
+
+if (radiosPerfil) {
+    radiosPerfil.forEach(radio => {
+        radio.addEventListener("change", () => {
+            selectUF.value = "";
+            selectMunicipio.innerHTML = '<option value="">Selecione primeiro o estado</option>';
+            selectMunicipio.value = "";
+            selectMunicipio.disabled = true;
+            atualizarEstadoCamposEscola();
+        });
+    });
+}
+
+selectUF.addEventListener("change", atualizarEstadoCamposEscola);
+document.addEventListener("DOMContentLoaded", atualizarEstadoCamposEscola);
+</script>
+
+</body>
+</html>
